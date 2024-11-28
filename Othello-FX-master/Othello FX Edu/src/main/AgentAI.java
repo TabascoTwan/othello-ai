@@ -22,50 +22,49 @@ public class AgentAI extends Agent {
 
     @Override
     public AgentMove getMove(GameBoardState gameState) {
-        return alphaBeta(gameState, playerTurn, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE).getMove();
+        return alphaBeta(gameState, playerTurn, 0, Integer.MIN_VALUE, Integer.MAX_VALUE).getMove();
     }
 
     private Result alphaBeta(GameBoardState board, PlayerTurn player, int depth, int alpha, int beta) {
-        if (depth == 0 || board.isTerminal()) {
+        setSearchDepth(depth);
+        nodesExamined++;
+        setNodesExamined(nodesExamined);
+        if (depth == MAX_DEPTH || board.isTerminal()) {
+            reachedLeafNodes++;
+            setReachedLeafNodes(reachedLeafNodes);
             return new Result(evaluateBoard(board, player), null);
         }
 
         AgentMove bestMove = null;
         for (ObjectiveWrapper move : AgentController.getAvailableMoves(board, player)) {
-            //GameBoardState newBoard = board.makeMove(move, player);
-            //Göra ett move först eller gör getNewState det?
+            setSearchDepth(depth);
             GameBoardState newBoard = AgentController.getNewState(board, move);
             Result result = null;
-            /*if (playerTurn == PlayerTurn.PLAYER_ONE) {
-                result = alphaBeta(newBoard, PlayerTurn.PLAYER_TWO, depth - 1, alpha, beta);
-            } else {
-                result = alphaBeta(newBoard, PlayerTurn.PLAYER_ONE, depth - 1, alpha, beta);
-            } */
-            //Result result = alphaBeta(newBoard, player.getOpponent(), depth - 1, alpha, beta);
 
             if (player == PlayerTurn.PLAYER_ONE) {
-                result = alphaBeta(newBoard, PlayerTurn.PLAYER_TWO, depth - 1, alpha, beta);
+                result = alphaBeta(newBoard, PlayerTurn.PLAYER_TWO, depth + 1, alpha, beta);
                 if (result.getScore().getValue() > alpha) {
                     alpha = result.getScore().getValue();
-                    //bestMove = move;
                     bestMove = new MoveWrapper(move);
                 }
             } else {
-                result = alphaBeta(newBoard, PlayerTurn.PLAYER_ONE, depth - 1, alpha, beta);
+                result = alphaBeta(newBoard, PlayerTurn.PLAYER_ONE, depth + 1, alpha, beta);
                 if (result.getScore().getValue() < beta) {
                     beta = result.getScore().getValue();
-                    //bestMove = move;
                     bestMove = new MoveWrapper(move);
                 }
             }
 
             if (alpha >= beta) {
+                prunedCounter++;
+                setPrunedCounter(prunedCounter);
                 break;
             }
         }
 
         return new Result(new Score(player == PlayerTurn.PLAYER_ONE ? alpha : beta), bestMove);
     }
+
 
     private Score evaluateBoard(GameBoardState board, PlayerTurn player) {
         BoardCellState playerState = player == PlayerTurn.PLAYER_ONE ? BoardCellState.WHITE : BoardCellState.BLACK;
