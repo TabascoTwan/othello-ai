@@ -37,7 +37,6 @@ public class AgentAI extends Agent {
 
         AgentMove bestMove = null;
         for (ObjectiveWrapper move : AgentController.getAvailableMoves(board, player)) {
-            setSearchDepth(depth);
             GameBoardState newBoard = AgentController.getNewState(board, move);
             Result result = null;
 
